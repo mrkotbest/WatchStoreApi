@@ -6,7 +6,6 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.txt)
 [![EF Core](https://img.shields.io/badge/EF%20Core-10.0-3F8AC4)](https://learn.microsoft.com/ef/core/)
-[![Release](https://img.shields.io/github/v/release/mrkotbest/WatchStoreApi?include_prereleases&sort=semver)](https://github.com/mrkotbest/WatchStoreApi/releases)
 
 ---
 
