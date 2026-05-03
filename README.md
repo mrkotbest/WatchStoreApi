@@ -1,0 +1,162 @@
+# WatchStoreApi
+
+> A clean-architecture watch e-commerce REST API built with ASP.NET Core 10. JWT authentication, layered solution, EF Core with SQL Server, FluentValidation, Swagger, and a full xUnit test suite.
+
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.txt)
+[![EF Core](https://img.shields.io/badge/EF%20Core-10.0-3F8AC4)](https://learn.microsoft.com/ef/core/)
+[![Tests](https://img.shields.io/badge/tests-97%20passing-brightgreen)](#tests)
+
+---
+
+## Why WatchStoreApi
+
+A reference implementation of a small but realistic e-commerce backend — catalog, cart, checkout, refresh-token auth, admin analytics — written the way a production .NET service would be: layered into Domain / Application / Infrastructure / Api projects, with EF Core hidden behind an `IAppDbContext` interface, business outcomes returned as `Result<T>` instead of thrown exceptions, and image uploads validated by magic bytes rather than file extension.
+
+## Features
+
+- **Layered architecture** — separate `Domain`, `Application`, `Infrastructure`, and `Api` projects. Application code never references EF or ASP.NET directly.
+- **JWT authentication** with hashed refresh tokens, role-based authorization (`User` / `Admin`), and token revocation.
+- **Result pattern** — services return `Result` / `Result<T>` with embedded HTTP status codes; controllers stay thin and never throw for business errors.
+- **EF Core 10 + SQL Server (LocalDB)** — code-first migrations, fluent configurations, seed data for 4 categories and 20 watches.
+- **FluentValidation 12** — auto-discovered validators in DI.
+- **Rate limiting** — fixed window for auth endpoints, sliding window for the rest.
+- **File uploads** validated by **magic bytes**, stored under GUID names in `wwwroot/images/products/`.
+- **Swagger / OpenAPI** with JWT bearer security scheme, available at `/swagger` in Development.
+- **Global exception handling** via RFC 7807 `ProblemDetails`.
+- **97 tests** — unit (Moq + EF Core InMemory) and integration (`WebApplicationFactory<Program>`).
+
+## Quick start
+
+**Prerequisites:**
+
+- [.NET SDK 10.0](https://dotnet.microsoft.com/download)
+- SQL Server LocalDB (ships with Visual Studio or as a [standalone installer](https://learn.microsoft.com/sql/database-engine/configure-windows/sql-server-express-localdb))
+- `dotnet-ef` global tool: `dotnet tool install --global dotnet-ef --version 10.0.5`
+
+```bash
+git clone https://github.com/mrkotbest/WatchStoreApi.git
+cd WatchStoreApi
+
+# 1. Start LocalDB (Windows)
+sqllocaldb start MSSQLLocalDB
+
+# 2. Provide a JWT signing key (must be 32+ chars). Stored in user-secrets, never in the repo.
+dotnet user-secrets --project src/WatchStoreApi.Api set "Jwt:Key" "<your-32-plus-char-secret>"
+
+# 3. Apply migrations — creates the WatchStoreDb database with seed data
+dotnet ef database update `
+  --project src/WatchStoreApi.Infrastructure `
+  --startup-project src/WatchStoreApi.Api
+
+# 4. Run
+dotnet run --project src/WatchStoreApi.Api
+```
+
+Open **https://localhost:7095/swagger** for the interactive API reference.
+
+## REST API
+
+| Method | Path | Auth | Description |
+| ------ | ---- | ---- | ----------- |
+| `POST` | `/api/auth/register` | — | Register a new user, returns the new id. |
+| `POST` | `/api/auth/login` | — | Returns access + refresh tokens. |
+| `POST` | `/api/auth/refresh` | — | Rotates the refresh token, returns a new pair. |
+| `POST` | `/api/auth/revoke` | user | Revokes a refresh token (logout). |
+| `GET`  | `/api/categories` | — | Lists all categories. |
+| `GET`  | `/api/products?search=&categoryId=&material=&gender=&minPrice=&maxPrice=&pageNumber=&pageSize=` | — | Paginated product catalog with filters. |
+| `GET`  | `/api/products/{id}` | — | Single product. |
+| `GET`  | `/api/cart` | user | Current user's cart. |
+| `POST` | `/api/cart` | user | Add a product to cart. |
+| `PUT`  | `/api/cart/{productId}` | user | `increase` / `decrease` quantity. |
+| `DELETE` | `/api/cart/{productId}` | user | Remove an item. |
+| `POST` | `/api/orders` | user | Create an order from the current cart (transactional). |
+| `GET`  | `/api/orders` | user | Paginated list of user's orders. |
+| `GET`  | `/api/orders/{orderId}` | user | Order details (own orders only). |
+| `POST` `PUT` `DELETE` | `/api/admin/categories` `…/{id}` | admin | Category CRUD. |
+| `POST` `PUT` `DELETE` | `/api/admin/products` `…/{id}` | admin | Product CRUD with image upload (multipart/form-data). |
+| `GET`  | `/api/admin/dashboard` | admin | Total / pending orders, revenue, products, categories. |
+| `GET`  | `/api/admin/revenue?range=monthly\|weekly\|yearly` | admin | Last 7 periods of delivered revenue. |
+| `GET`  | `/api/admin/orders?…` | admin | Paginated orders with status / date / user filters. |
+| `GET`  | `/api/admin/orders/pending` | admin | Pending orders only. |
+| `GET`  | `/api/admin/orders/{orderId}` | admin | Order line items with product info. |
+| `PUT`  | `/api/admin/orders/{orderId}/status` | admin | Transition order status (validated by a state machine). |
+
+`Authorization: Bearer <accessToken>` header is required for `user` / `admin` routes. Order status follows a strict state machine — see `OrderStatusMachine.cs`.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    Client([HTTP client]) --> API(WatchStoreApi.Api<br/>controllers · middleware · DI)
+    API --> APP(WatchStoreApi.Application<br/>services · DTOs · validators · Result)
+    APP --> DOM(WatchStoreApi.Domain<br/>entities · enums)
+    APP -. IAppDbContext .-> INFRA(WatchStoreApi.Infrastructure<br/>EF Core · TokenService · FileService)
+    INFRA --> DOM
+    INFRA --> DB[("SQL Server<br/>LocalDB")]
+    INFRA --> FS[/wwwroot/images/products/]
+```
+
+Dependencies flow inward: `Domain` knows nothing, `Application` depends only on `Domain`, `Infrastructure` adds the EF / file / token implementations, and `Api` wires them together. The `IAppDbContext` abstraction in `Application` keeps services free of any direct EF Core dependency on `DbContext` lifetime.
+
+## Tech stack
+
+- **ASP.NET Core 10.0** — Web API host
+- **Entity Framework Core 10** with `Microsoft.EntityFrameworkCore.SqlServer`
+- **JWT Bearer** authentication (`Microsoft.AspNetCore.Authentication.JwtBearer`)
+- **FluentValidation 12** — auto-registered from the Application assembly
+- **Swashbuckle.AspNetCore 9** — OpenAPI / Swagger UI
+- **xUnit 2.9 + Moq 4.20 + Microsoft.AspNetCore.Mvc.Testing + EFCore.InMemory** — tests
+
+## Project layout
+
+```
+WatchStoreApi/
+├── src/
+│   ├── WatchStoreApi.Domain/          # Entities, enums — no dependencies
+│   ├── WatchStoreApi.Application/     # Services, DTOs, validators, Result, IAppDbContext
+│   ├── WatchStoreApi.Infrastructure/  # AppDbContext, EF configurations, migrations,
+│   │                                  # TokenService, FileService, CurrentUserService
+│   └── WatchStoreApi.Api/             # Controllers, middleware, Program.cs, appsettings
+└── tests/
+    └── WatchStoreApi.Tests/           # Unit + integration tests
+```
+
+## Configuration
+
+Configuration is layered (`appsettings.json` → `appsettings.Development.json` → environment variables → user-secrets). Every secret comes from outside the repo.
+
+| Key | Where | Notes |
+| --- | ----- | ----- |
+| `ConnectionStrings:DefaultConnection` | `appsettings.Development.json` (LocalDB) / env var in prod | Empty in `appsettings.json` by design. |
+| `Jwt:Key` | user-secrets / env (`Jwt__Key`) | **Required**, 32+ chars. App refuses to start otherwise. |
+| `Jwt:Issuer`, `Jwt:Audience`, `AccessTokenExpirationMinutes`, `RefreshTokenExpirationDays` | `appsettings.json` | Sensible defaults provided. |
+| `FileStorage:MaxFileSizeBytes`, `AllowedExtensions`, `UploadPath` | `appsettings.json` | 5 MB / `.jpg .jpeg .png .webp` / `images/products`. |
+| `RateLimiting:LoginPermitLimit`, `LoginWindowSeconds`, `GeneralPermitLimit`, `GeneralWindowSeconds` | `appsettings.json` | Two policies: `auth` (fixed window) and `general` (sliding window). |
+| `Cors:AllowedOrigins` | `appsettings.Development.json` for local | Empty array → `AllowAnyOrigin`. |
+
+## Database & seed data
+
+The initial migration (`20260503161956_InitialCreate`) creates all tables and seeds:
+
+- **4 categories** — Classic, Smart, Premium, Luxury
+- **20 products** — Sveston-branded watches across the four categories
+
+Seed data is declared in `Infrastructure/Persistence/SeedData.cs` (called from `OnModelCreating` via `HasData`). To change the seed, **add a new migration** — never edit an existing one.
+
+The database file itself is **not** committed; every contributor recreates it locally with `dotnet ef database update`.
+
+## Tests
+
+```bash
+dotnet test
+```
+
+- **Unit tests** (`tests/WatchStoreApi.Tests/Unit/Services/`) cover every service against EF Core InMemory.
+- **Integration tests** (`tests/WatchStoreApi.Tests/Integration/`) boot the whole pipeline through `WebApplicationFactory<Program>` and hit the real HTTP endpoints. The factory swaps SQL Server for InMemory and inflates rate limits, so 97 tests run end-to-end in roughly 5 seconds.
+
+## License
+
+MIT — see [LICENSE.txt](LICENSE.txt).
+
+Author: [Anatolii Radchenko](https://github.com/mrkotbest)
