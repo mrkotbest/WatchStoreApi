@@ -1,3 +1,4 @@
+using Scalar.AspNetCore;
 using WatchStoreApi.Api;
 using WatchStoreApi.Api.Middleware;
 using WatchStoreApi.Application;
@@ -19,7 +20,14 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapScalarApiReference(options =>
+    {
+        options
+            .WithTitle("WatchStore API")
+            .WithOpenApiRoutePattern("/swagger/{documentName}/swagger.json")
+            .AddPreferredSecuritySchemes("Bearer")
+            .AddHttpAuthentication("Bearer", bearer => bearer.Token = string.Empty);
+    });
 }
 
 app.UseExceptionHandler();
