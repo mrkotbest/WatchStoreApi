@@ -361,3 +361,24 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# WatchStoreApi-specific
+
+# Local secrets (user-secrets are stored outside the repo, but be defensive)
+secrets.json
+appsettings.*.local.json
+
+# Uploaded product images (user content, not source)
+**/wwwroot/images/products/*
+!**/wwwroot/images/products/.gitkeep
+
+# JetBrains Rider / VS Code
+.idea/
+.vscode/
+
+# OS junk
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
