@@ -2,10 +2,10 @@
 
 > A clean-architecture watch e-commerce REST API built with ASP.NET Core 10. JWT authentication, layered solution, EF Core with SQL Server, FluentValidation, Swagger, and a full xUnit test suite.
 
+[![CI](https://github.com/mrkotbest/WatchStoreApi/actions/workflows/ci.yml/badge.svg)](https://github.com/mrkotbest/WatchStoreApi/actions/workflows/ci.yml)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.txt)
 [![EF Core](https://img.shields.io/badge/EF%20Core-10.0-3F8AC4)](https://learn.microsoft.com/ef/core/)
-[![Tests](https://img.shields.io/badge/tests-97%20passing-brightgreen)](#tests)
 
 ---
 
@@ -159,4 +159,4 @@ dotnet test
 
 MIT — see [LICENSE.txt](LICENSE.txt).
 
-Author: [Anatolii Radchenko](https://github.com/mrkotbest)
+Author: [@mrkotbest](https://github.com/mrkotbest)
