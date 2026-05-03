@@ -5,6 +5,23 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      ef-core:
+        patterns:
+          - "Microsoft.EntityFrameworkCore*"
+      aspnetcore:
+        patterns:
+          - "Microsoft.AspNetCore*"
+      identity-tokens:
+        patterns:
+          - "Microsoft.Extensions.Identity*"
+          - "System.IdentityModel.Tokens.Jwt"
+      test-deps:
+        patterns:
+          - "Microsoft.NET.Test.Sdk"
+          - "xunit*"
+          - "Moq"
+          - "coverlet*"
 
   - package-ecosystem: github-actions
     directory: "/"
