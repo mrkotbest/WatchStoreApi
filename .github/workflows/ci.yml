@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore WatchStoreApi.slnx
+
+      - name: Build
+        run: dotnet build WatchStoreApi.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test WatchStoreApi.slnx --configuration Release --no-build --verbosity normal
