@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WatchStoreApi.Domain/WatchStoreApi.Domain.csproj" />
+    <Project Path="src/WatchStoreApi.Application/WatchStoreApi.Application.csproj" />
+    <Project Path="src/WatchStoreApi.Infrastructure/WatchStoreApi.Infrastructure.csproj" />
+    <Project Path="src/WatchStoreApi.Api/WatchStoreApi.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WatchStoreApi.Tests/WatchStoreApi.Tests.csproj" />
+  </Folder>
+</Solution>

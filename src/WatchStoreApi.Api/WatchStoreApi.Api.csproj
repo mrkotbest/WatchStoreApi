@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>bcdc30ea-f311-4443-abe3-03a79ce66196</UserSecretsId>
+    <RootNamespace>WatchStoreApi.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WatchStoreApi.Application\WatchStoreApi.Application.csproj" />
+    <ProjectReference Include="..\WatchStoreApi.Infrastructure\WatchStoreApi.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
