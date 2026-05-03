@@ -109,17 +109,25 @@ public class AdminServiceTests : IDisposable
     [Fact]
     public async Task GetRevenue_Monthly_Returns7Periods()
     {
-        var result = await _sut.GetRevenueAsync("monthly");
+        var result = await _sut.GetRevenueAsync(RevenueRange.Monthly);
 
         Assert.Equal(7, result.Count);
     }
 
     [Fact]
-    public async Task GetRevenue_InvalidRange_ReturnsEmpty()
+    public async Task GetRevenue_Weekly_Returns7Periods()
     {
-        var result = await _sut.GetRevenueAsync("invalid");
+        var result = await _sut.GetRevenueAsync(RevenueRange.Weekly);
 
-        Assert.Empty(result);
+        Assert.Equal(7, result.Count);
+    }
+
+    [Fact]
+    public async Task GetRevenue_Yearly_Returns7Periods()
+    {
+        var result = await _sut.GetRevenueAsync(RevenueRange.Yearly);
+
+        Assert.Equal(7, result.Count);
     }
 
     public void Dispose()

@@ -1,13 +1,14 @@
 using WatchStoreApi.Application.Common;
 using WatchStoreApi.Application.DTOs.Admin;
 using WatchStoreApi.Application.DTOs.Orders;
+using WatchStoreApi.Domain.Enums;
 
 namespace WatchStoreApi.Application.Interfaces;
 
 public interface IAdminService
 {
     Task<DashboardResponse> GetDashboardAsync(CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<RevenueResponse>> GetRevenueAsync(string range, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<RevenueResponse>> GetRevenueAsync(RevenueRange range, CancellationToken cancellationToken = default);
     Task<PagedResponse<AdminOrderResponse>> GetAllOrdersAsync(
         int pageNumber,
         int pageSize,

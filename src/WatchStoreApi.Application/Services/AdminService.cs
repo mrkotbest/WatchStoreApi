@@ -23,15 +23,14 @@ public class AdminService(IAppDbContext dbContext) : IAdminService
         return new DashboardResponse(totalOrders, pendingOrders, totalRevenue, totalProducts, totalCategories);
     }
 
-    public async Task<IReadOnlyList<RevenueResponse>> GetRevenueAsync(string range, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<RevenueResponse>> GetRevenueAsync(RevenueRange range, CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
         var result = new List<RevenueResponse>(7);
 
         for (var i = 6; i >= 0; i--)
         {
-            if (!TryGetPeriod(range, now, i, out var start, out var end, out var period))
-                return [];
+            var (start, end, period) = GetPeriod(range, now, i);
 
             var revenue = await dbContext.Orders
                 .Where(o => o.Status == OrderStatus.Delivered && o.OrderDate >= start && o.OrderDate < end)
@@ -116,38 +115,27 @@ public class AdminService(IAppDbContext dbContext) : IAdminService
         return Result.Success();
     }
 
-    private static bool TryGetPeriod(string range, DateTime now, int offset,
-        out DateTime start, out DateTime end, out string period)
+    private static (DateTime Start, DateTime End, string Period) GetPeriod(RevenueRange range, DateTime now, int offset)
     {
-        switch (range.ToLowerInvariant())
+        switch (range)
         {
-            case "yearly":
+            case RevenueRange.Yearly:
                 var year = now.Year - offset;
-                start = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                end = start.AddYears(1);
-                period = year.ToString();
-                return true;
+                var yStart = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                return (yStart, yStart.AddYears(1), year.ToString());
 
-            case "monthly":
+            case RevenueRange.Monthly:
                 var date = now.AddMonths(-offset);
-                start = new DateTime(date.Year, date.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-                end = start.AddMonths(1);
-                period = $"{date.Year}-{date.Month:D2}";
-                return true;
+                var mStart = new DateTime(date.Year, date.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                return (mStart, mStart.AddMonths(1), $"{date.Year}-{date.Month:D2}");
 
-            case "weekly":
+            case RevenueRange.Weekly:
                 var weekStart = now.Date.AddDays(-7 * offset);
-                start = DateTime.SpecifyKind(
-                    weekStart.AddDays(-(int)weekStart.DayOfWeek), DateTimeKind.Utc);
-                end = start.AddDays(7);
-                period = start.ToString("yyyy-MM-dd");
-                return true;
+                var wStart = DateTime.SpecifyKind(weekStart.AddDays(-(int)weekStart.DayOfWeek), DateTimeKind.Utc);
+                return (wStart, wStart.AddDays(7), wStart.ToString("yyyy-MM-dd"));
 
             default:
-                start = default;
-                end = default;
-                period = string.Empty;
-                return false;
+                throw new ArgumentOutOfRangeException(nameof(range), range, null);
         }
     }
 }

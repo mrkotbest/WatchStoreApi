@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WatchStoreApi.Application.Interfaces;
+using WatchStoreApi.Domain.Enums;
 
 namespace WatchStoreApi.Api.Controllers.Admin;
 
@@ -17,7 +18,7 @@ public class AdminDashboardController(IAdminService adminService) : ControllerBa
     }
 
     [HttpGet("revenue")]
-    public async Task<IActionResult> GetRevenue([FromQuery] string range = "monthly", CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetRevenue([FromQuery] RevenueRange range = RevenueRange.Monthly, CancellationToken cancellationToken = default)
     {
         var revenue = await adminService.GetRevenueAsync(range, cancellationToken);
         return Ok(revenue);
