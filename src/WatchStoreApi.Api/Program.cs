@@ -1,12 +1,16 @@
 using Scalar.AspNetCore;
 using WatchStoreApi.Api;
+using WatchStoreApi.Api.Filters;
 using WatchStoreApi.Api.Middleware;
 using WatchStoreApi.Application;
 using WatchStoreApi.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<FluentValidationFilter>();
+});
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ExceptionHandlingMiddleware>();
 

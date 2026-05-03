@@ -6,6 +6,7 @@ using WatchStoreApi.Application.Interfaces;
 
 namespace WatchStoreApi.Api.Controllers;
 
+
 [Route("api/auth")]
 [ApiController]
 public class AuthController(IAuthService authService) : ControllerBase
@@ -51,4 +52,3 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 }
 
-public record RefreshRequest(string RefreshToken);
